@@ -19,8 +19,14 @@
   }
 }
 
+html, body, #__next {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #1a202c; /* Dark background */
+  color: #e2e8f0; /* Light text */
+  font-family: 'Inter', sans-serif;
 }
