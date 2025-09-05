@@ -69,6 +69,14 @@ const PlaylistDetailPage = () => {
     }
   };
 
+  // small helper to format seconds -> M:SS
+  const formatTime = (time: number) => {
+    if (!Number.isFinite(time) || isNaN(time)) return '0:00';
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+
   if (loading) return <div className="text-white">Loading playlist...</div>;
   if (error) return <div className="text-red-500">Error: {error}</div>;
   if (!playlist) return <div className="text-white">Playlist not found.</div>;
@@ -108,7 +116,7 @@ const PlaylistDetailPage = () => {
                 <p className="text-gray-400">{track.artist.name} - {track.genre.genre}</p>
               </div>
             </div>
-            <p className="text-gray-400">{track.duration}s</p>
+            <p className="text-gray-400">{formatTime(track.duration)}</p>
           </div>
         ))}
       </div>

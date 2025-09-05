@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchGenres } from '@/services/api';
 import Link from 'next/link';
 import Image from 'next/image';
+import Card from '@/components/ui/Card';
 
 interface Genre {
   gid: string; // Now actually returned by the backend
@@ -36,20 +37,57 @@ const DiscoverPage = () => {
     getGenres();
   }, []);
 
-  if (loading) return <div className="text-white">Loading genres...</div>;
-  if (error) return <div className="text-red-500">Error: {error}</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading genres...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="text-center">
+          <div className="text-red-400 mb-4">⚠️ Error loading genres</div>
+          <p className="text-gray-400">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4">
-      <h1 className="text-3xl font-bold mb-6 text-white">Discover Genres</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <div>
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold text-white mb-2">Discover Genres</h1>
+        <p className="text-gray-400 text-lg">Explore music across different genres and find your next favorite</p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {genres.map((genre) => (
-          <div key={genre.gid} className="bg-gray-800 rounded-lg p-4 shadow-lg flex flex-col items-center">
-            <div className="w-32 h-32 rounded-md overflow-hidden mb-4 relative">
-              <Image src={genre.genreCoverUrl || '/default-genre.png'} alt={genre.genre} fill className="object-cover" sizes="128px" />
-            </div>
-            <Link href={`/discover/${genre.gid}`} className="text-xl font-semibold text-white hover:text-blue-400">{genre.genre}</Link>
-          </div>
+          <Card key={genre.gid} hover className="group overflow-hidden">
+            <Link href={`/discover/${genre.gid}`} className="block">
+              {/* Full-width square image that fills the card (no small centered thumbnail) */}
+              <div className="w-full aspect-square rounded-xl overflow-hidden relative group-hover:scale-105 transition-transform duration-200">
+                <Image
+                  src={genre.genreCoverUrl || '/default-genre.png'}
+                  alt={genre.genre}
+                  fill
+                  className="object-cover object-center"
+                  sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                />
+              </div>
+
+              <div className="p-4 text-center">
+                <h3 className="text-lg font-semibold text-white group-hover:text-teal-400 transition-colors duration-200">
+                  {genre.genre}
+                </h3>
+              </div>
+            </Link>
+          </Card>
         ))}
       </div>
     </div>

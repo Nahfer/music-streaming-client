@@ -3,17 +3,18 @@
 import React, { useEffect, useState } from 'react';
 import { fetchUserProfile } from '@/services/api';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Card from '@/components/ui/Card';
+import Avatar from '@/components/ui/Avatar';
 
 interface UserAlbum {
-  aaid: string; // Album ID
+  aaid: string;
   title: string;
   albumCover: string | null;
 }
 
 interface UserProfile {
-  aid: string; // Artist ID
+  aid: string;
   email: string;
   name: string;
   gender: string;
@@ -24,7 +25,6 @@ interface UserProfile {
 }
 
 const ProfilePage = () => {
-  const router = useRouter();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,77 +48,113 @@ const ProfilePage = () => {
     getProfile();
   }, []);
 
-  const signOut = () => {
-    try {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-      }
-    } catch {
-      // ignore
-    }
-    // send the user to the login page
-    router.push('/login');
-  };
+  // Sign out is handled by the header replacement and the ProfileDropdown; no button in the profile card
 
-  if (loading) return <div className="text-white">Loading profile...</div>;
-  if (error) return <div className="text-red-500">Error: {error}</div>;
-  if (!userProfile) return <div className="text-white">Profile not found.</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="text-center">
+          <div className="text-red-400 mb-4">⚠️ Error loading profile</div>
+          <p className="text-gray-400">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!userProfile) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="text-center">
+          <div className="text-gray-400">Profile not found</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-start mb-6">
-        <h1 className="text-3xl font-bold mb-6 text-white">My Profile</h1>
-        <button
-          onClick={signOut}
-          className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded"
-        >
-          Sign Out
-        </button>
+    <div>
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold text-white mb-2">My Profile</h1>
+        <p className="text-gray-400 text-lg">Manage your account and view your music</p>
       </div>
 
-      <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
-        <div className="flex items-center mb-4">
-          <div className="w-24 h-24 rounded-full overflow-hidden mr-6 relative">
-            <Image
-              src={userProfile.profileImageUrl || '/default-user.png'}
-              alt={userProfile.name}
-              fill
-              className="object-cover"
-              style={{ objectPosition: 'center' }}
-            />
-          </div>
-          <div>
-            <p className="text-2xl font-semibold text-white">{userProfile.name}</p>
-            <p className="text-gray-400">{userProfile.email}</p>
-            <p className="text-gray-400">{userProfile.type}</p>
-          </div>
-        </div>
-        <p className="text-gray-300">{userProfile.bio}</p>
-      </div>
-
-      <h2 className="text-2xl font-bold text-white mb-4">My Albums</h2>
-      {userProfile.albums.length === 0 ? (
-        <p className="text-gray-400">No albums uploaded.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-6">
-          {userProfile.albums.map((album) => (
-            <div key={album.aaid} className="bg-gray-800 rounded-lg p-4 shadow-lg flex flex-col items-center">
-              <div className="w-32 h-32 rounded-md overflow-hidden mb-4">
-                <Image
-                  src={album.albumCover || '/default-album.png'}
-                  alt={album.title}
-                  width={128}
-                  height={128}
-                  className="object-cover"
-                />
-              </div>
-              <Link href={`/artist/${userProfile.aid}/${album.aaid}`} className="text-xl font-semibold text-white hover:text-blue-400">
-                {album.title}
-              </Link>
+      {/* Profile Info Card */}
+      <Card className="mb-8">
+        <div className="p-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+            <div className="flex-shrink-0">
+              <Avatar
+                src={userProfile.profileImageUrl || undefined}
+                alt={userProfile.name}
+                fallback={userProfile.name.charAt(0).toUpperCase()}
+                size="xl"
+                className="ring-2 ring-gray-700"
+              />
             </div>
-          ))}
+
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold text-white mb-2">{userProfile.name}</h2>
+              <div className="space-y-1 text-gray-400">
+                <p>📧 {userProfile.email}</p>
+                <p>🎭 {userProfile.type}</p>
+                {userProfile.bio && <p>📝 {userProfile.bio}</p>}
+              </div>
+            </div>
+          </div>
         </div>
-      )}
+      </Card>
+
+      {/* Albums Section */}
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold text-white mb-6">My Albums</h2>
+
+        {userProfile.albums.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-400 mb-4">
+              <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-2">No albums yet</h3>
+            <p className="text-gray-400">Your uploaded albums will appear here</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {userProfile.albums.map((album) => (
+              <Card key={album.aaid} hover className="group overflow-hidden">
+                <Link href={`/artist/${userProfile.aid}/${album.aaid}`} className="block">
+                  <div className="w-full aspect-square rounded-xl overflow-hidden relative group-hover:scale-105 transition-transform duration-200">
+                    <Image
+                      src={album.albumCover || '/default-album.png'}
+                      alt={album.title}
+                      fill
+                      className="object-cover object-center"
+                      sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                    />
+                  </div>
+
+                  <div className="p-4 text-center">
+                    <h3 className="text-lg font-semibold text-white group-hover:text-teal-400 transition-colors duration-200 truncate">
+                      {album.title}
+                    </h3>
+                  </div>
+                </Link>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

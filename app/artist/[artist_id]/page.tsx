@@ -73,16 +73,22 @@ const ArtistPage = () => {
       <h2 className="text-2xl font-bold text-white mb-4">Albums</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {artistProfile.albums.map((album) => (
-          <div key={album.aaid} className="bg-gray-800 rounded-lg p-4 shadow-lg flex flex-col items-center">
-            <Image
-              src={album.albumCover || '/default-album.png'}
-              alt={album.title}
-              width={128}
-              height={128}
-              className="w-32 h-32 rounded-md object-cover mb-4"
-            />
-            <Link href={`/artist/${artist_id}/${album.aaid}`} className="text-xl font-semibold text-white hover:text-blue-400">
-              {album.title}
+          <div key={album.aaid} className="bg-gray-800 rounded-lg p-0 shadow-lg overflow-hidden">
+            <Link href={`/artist/${artist_id}/${album.aaid}`} className="block">
+              <div className="w-full aspect-square relative group-hover:scale-105 transition-transform duration-200">
+                <Image
+                  src={album.albumCover || '/default-album.png'}
+                  alt={album.title}
+                  fill
+                  className="object-cover object-center"
+                />
+              </div>
+
+              <div className="p-4 text-center">
+                <h3 className="text-xl font-semibold text-white hover:text-blue-400 truncate">
+                  {album.title}
+                </h3>
+              </div>
             </Link>
           </div>
         ))}

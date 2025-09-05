@@ -6,6 +6,14 @@ import { fetchAlbumTracks } from '@/services/api';
 import { useParams } from 'next/navigation';
 import Player from '@/components/Player';
 
+// small helper to format seconds -> M:SS
+const formatTime = (time: number) => {
+  if (!Number.isFinite(time) || isNaN(time)) return '0:00';
+  const minutes = Math.floor(time / 60);
+  const seconds = Math.floor(time % 60);
+  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+};
+
 interface Track {
   tid: string; // Now actually returned by the backend
   title: string;
@@ -88,7 +96,7 @@ const AlbumPage = () => {
                 <p className="text-gray-400">{track.artist.name} - {track.genre.genre}</p>
               </div>
             </div>
-            <p className="text-gray-400">{track.duration}s</p>
+            <p className="text-gray-400">{formatTime(track.duration)}</p>
           </div>
         ))}
       </div>

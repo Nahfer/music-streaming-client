@@ -1,23 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #050505; /* matte black */
+  --foreground: #eef2f7; /* off-white for text */
+  --muted: #6b7280; /* muted gray for accents */
+  --panel: #0b0b0b; /* card/panel background */
+  /* less-saturated medium-dark green for contrast */
+  --accent: #2f6f56;
+  --accent-dark: #245943; /* slightly darker on hover */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* utility class for consistent accent color usage */
+.text-accent { color: var(--accent) !important; }
+.bg-accent { background-color: var(--accent) !important; }
+.bg-accent-dark { background-color: var(--accent-dark) !important; }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* theme variables exposed via :root above */
+/* --color-background and --color-foreground available for components */
 
 html, body, #__next {
   height: 100%;
@@ -26,7 +25,114 @@ html, body, #__next {
 }
 
 body {
-  background-color: #1a202c; /* Dark background */
-  color: #e2e8f0; /* Light text */
+  /* matte black background */
+  background: var(--background);
+  color: var(--foreground);
   font-family: 'Inter', sans-serif;
+  min-height: 100vh;
 }
+
+/* Custom scrollbar tuned for matte theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #060606;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1f2937; /* near-black slate */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #374151;
+}
+
+/* Smooth transitions for interactive elements */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Override teal/emerald utilities to use accent color for contrast */
+.bg-teal-600, .bg-teal-700, .from-teal-600, .to-teal-700, .bg-emerald-600, .text-teal-400, .text-teal-500 {
+  background-color: var(--accent) !important;
+  color: var(--foreground) !important;
+}
+
+/* ensure text utility maps to proper accent color */
+.text-teal-400, .text-emerald-600 {
+   color: var(--accent) !important;
+}
+
+.border-teal-500, .ring-teal-500, .focus\:ring-teal-500 {
+  border-color: var(--accent-dark) !important;
+  box-shadow: 0 0 0 3px rgba(31,122,58,0.12) !important;
+}
+
+.bg-gradient-to-r, .bg-gradient-to-br, .from-teal-600, .to-teal-600 {
+  /* keep gradients neutral but allow accent background when used */
+  background-image: none !important;
+}
+
+/* Buttons using bg-teal/blue/green should adopt the accent */
+.bg-teal-600:hover, .bg-teal-700:hover, .bg-emerald-600:hover {
+  background-color: var(--accent-dark) !important;
+  filter: none !important;
+}
+
+/* Make cards/panels slightly lighter than background */
+.bg-gray-800, .card, .panel, .bg-gray-900\/95 {
+  background-color: var(--panel) !important;
+  border-color: #111316 !important;
+}
+
+/* Ensure links and headings use accent for visual consistency */
+a, h1, h2, h3, h4, h5, h6 {
+  color: var(--foreground) !important;
+}
+
+a:hover, a:focus, .text-blue-500, .hover\:text-blue-800 {
+  color: var(--accent) !important;
+}
+
+/* Small helper: use accent for other bright accents */
+.text-pink-400, .text-yellow-400, .text-blue-400 {
+  color: var(--muted) !important;
+}
+
+/* Button specifics for form buttons */
+button.bg-blue-500, button.bg-green-500, button[class*="bg-blue-500"], button[class*="bg-green-500"] {
+  background-color: var(--accent) !important;
+  color: var(--foreground) !important;
+  border: 1px solid rgba(255,255,255,0.03) !important;
+}
+
+button.bg-blue-500:hover, button.bg-green-500:hover, button[class*="bg-blue-500"]:hover, button[class*="bg-green-500"]:hover {
+  background-color: var(--accent-dark) !important;
+}
+
+/* Inputs should remain readable */
+input[type="text"], input[type="email"], input[type="password"], textarea, select {
+  background: transparent !important;
+  color: var(--foreground) !important;
+  border-color: #111316 !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: rgba(255,255,255,0.35) !important;
+}
+
+/* Provide a subtle focus outline consistent with matte theme */
+:focus {
+  outline: 2px solid rgba(255,255,255,0.04);
+  outline-offset: 2px;
+}
+
+/* Subtle outline/shadow used as a focus/hover indicator matching the accent */
+.shadow-outline-accent { box-shadow: 0 0 0 3px rgba(47,111,86,0.12) !important; }
+.hover\:shadow-outline-accent:hover { box-shadow: 0 0 0 3px rgba(47,111,86,0.12) !important; }
+.focus\:shadow-outline-accent:focus { box-shadow: 0 0 0 3px rgba(47,111,86,0.12) !important; }
