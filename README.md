@@ -5,6 +5,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 This repository contains a full-stack music streaming project, split into two main applications:
 
 music-streaming-api/ — Backend (Next.js API routes, Prisma + Supabase)
+GOTO: https://github.com/Nahfer/music-streaming-API
 
 music-streaming-frontend/ — Frontend (Next.js app, React)
 
