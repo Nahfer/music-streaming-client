@@ -117,7 +117,7 @@ npm run dev
 By default, both Next.js apps run on port 3000.
 If running frontend and backend together, use different ports (e.g. backend on 3001).
 
-📌 API Endpoints (Quick Reference)
+📌 API Endpoints
 Endpoint	Method	Description
 /api/auth/register	POST	Register a new user
 /api/auth/login	POST	Login & receive JWT
