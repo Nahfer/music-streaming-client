@@ -62,13 +62,13 @@ Backend generates signed upload/download URLs when needed.
 
 Example Environment Variables
 
-Backend (.env):
+##Backend (.env):
 
-# Supabase Database
+ Supabase Database
 DATABASE_URL="postgresql://USER:PASSWORD@aws-1-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
 DIRECT_URL="postgresql://USER:PASSWORD@aws-1-eu-central-1.pooler.supabase.com:5432/postgres"
 
-# Auth
+ Auth
 JWT_SECRET="your-secret-key"
 
 
