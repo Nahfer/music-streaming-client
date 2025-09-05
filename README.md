@@ -1,10 +1,17 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
 🎵 Music Streaming App (Frontend + API)
+ℹ️ Notes
+
+Due to technical issues, only one track was uploaded to the Supabase storage bucket.
+
+The relatively few commits here are because the repo was pushed from a different directory. The original Git repo with full history is here: 👉 nunush146/music-stream
+.
+
+This repository now uses TypeScript instead of JavaScript, improving type-safety and error debugging.
 
 This repository contains a full-stack music streaming project, split into two main applications:
 
 music-streaming-api/ — Backend (Next.js API routes, Prisma + Supabase)
+👉 GOTO: Nahfer/music-streaming-API
 
 music-streaming-frontend/ — Frontend (Next.js app, React)
 
@@ -51,18 +58,8 @@ Storage Buckets (for album art, artist images, audio files, user avatars)
 
 Supabase assets are cached on a CDN to improve latency and reduce client-side processing.
 
-How it all fits together:
-
-Prisma manages and queries the Postgres database.
-
-Supabase Storage stores and serves media assets with signed URLs.
-
-Backend generates signed upload/download URLs when needed.
-
 Example Environment Variables
-
-Backend (.env):
-
+Backend (.env)
 # Supabase Database
 DATABASE_URL="postgresql://USER:PASSWORD@aws-1-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
 DIRECT_URL="postgresql://USER:PASSWORD@aws-1-eu-central-1.pooler.supabase.com:5432/postgres"
@@ -70,9 +67,7 @@ DIRECT_URL="postgresql://USER:PASSWORD@aws-1-eu-central-1.pooler.supabase.com:54
 # Auth
 JWT_SECRET="your-secret-key"
 
-
-Frontend (.env.local):
-
+Frontend (.env.local)
 NEXT_PUBLIC_API_BASE_URL=https://music-streaming-api-next.vercel.app
 
 🛠️ Local Development
@@ -88,13 +83,11 @@ A Supabase project with Postgres + storage bucket
 cd music-streaming-api
 npm install
 
-
-Create .env and add DATABASE_URL, DIRECT_URL, JWT_SECRET.
+Create .env with DATABASE_URL, DIRECT_URL, and JWT_SECRET.
 
 Run the development server:
 
 npm run dev
-
 
 Database setup:
 
@@ -114,9 +107,9 @@ npm run dev
 
 
 By default, both Next.js apps run on port 3000.
-If running frontend and backend together, use different ports (e.g. backend on 3001).
+If running frontend and backend together, assign different ports (e.g., backend on 3001).
 
-📌 API Endpoints (Quick Reference)
+📌 API Endpoints
 Endpoint	Method	Description
 /api/auth/register	POST	Register a new user
 /api/auth/login	POST	Login & receive JWT
@@ -133,7 +126,6 @@ Endpoint	Method	Description
 🚀 Deployment
 
 Both frontend and backend are deployed on Vercel.
-
 Next.js provides first-class support for Vercel deployments.
 
 🔮 Next Steps
