@@ -8,6 +8,7 @@ interface TrackInfo {
   title: string;
   artistName: string;
   audioUrl: string;
+  artworkUrl?: string;
 }
 
 interface PlayerProps {
@@ -16,13 +17,21 @@ interface PlayerProps {
   onPrev?: () => void;
   onToggleLoop?: (loop: boolean) => void;
   onShowLyrics?: (track: TrackInfo) => void;
+  // optional playlist for next/prev navigation
+  tracks?: TrackInfo[];
+  // optional callback to notify parent of track changes (un/muted)
+  onTrackChange?: (track: TrackInfo | null) => void;
 }
 
-const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleLoop, onShowLyrics }) => {
+const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleLoop, onShowLyrics, tracks, onTrackChange }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
+  // internal track state when parent does not control currentTrack
+  const [internalTrack, setInternalTrack] = useState<TrackInfo | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [buffered, setBuffered] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [isLooping, setIsLooping] = useState(false);
@@ -30,17 +39,27 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
   const [lyrics, setLyrics] = useState<string | null>(null);
   const [loadingLyrics, setLoadingLyrics] = useState(false);
   const [lyricsError, setLyricsError] = useState<string | null>(null);
+  const [isCompact, setIsCompact] = useState(false);
+
+  // activeTrack: prefer parent-controlled currentTrack, fallback to internalTrack
+  const activeTrack = currentTrack ?? internalTrack;
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (currentTrack) {
-      if (audio.src !== currentTrack.audioUrl) {
-        audio.src = currentTrack.audioUrl;
+    if (activeTrack) {
+      if (audio.src !== activeTrack.audioUrl) {
+        // ensure we fully reset the audio element before changing source to avoid
+        // carrying over buffered/metadata from previous track (fixes incorrect album/track mismatch)
+        try { audio.pause(); } catch { /* ignore */ }
+        audio.removeAttribute('src');
+        audio.src = activeTrack.audioUrl;
+        audio.load();
         audio.currentTime = 0;
         setCurrentTime(0);
         setDuration(0);
+        setBuffered(0);
       }
 
       const playPromise = audio.play();
@@ -59,8 +78,9 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
       setIsPlaying(false);
       setCurrentTime(0);
       setDuration(0);
+      setBuffered(0);
     }
-  }, [currentTrack, isLooping]);
+  }, [activeTrack, isLooping]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -112,8 +132,35 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
     if (audioRef.current) {
       const d = Number(audioRef.current.duration);
       setDuration(Number.isFinite(d) ? d : 0);
+      // initial buffered update
+      try {
+        const buf = audioRef.current.buffered;
+        if (buf && buf.length > 0) {
+          setBuffered(buf.end(buf.length - 1));
+        }
+      } catch { /* ignore */ }
     }
   };
+
+  // update buffered state during progress/timeupdate
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const updateBuffered = () => {
+      try {
+        const buf = audio.buffered;
+        if (buf && buf.length > 0) {
+          setBuffered(buf.end(buf.length - 1));
+        }
+      } catch { /* ignore browsers */ }
+    };
+    audio.addEventListener('progress', updateBuffered);
+    audio.addEventListener('timeupdate', updateBuffered);
+    return () => {
+      audio.removeEventListener('progress', updateBuffered);
+      audio.removeEventListener('timeupdate', updateBuffered);
+    };
+  }, []);
 
   const formatTime = (time: number) => {
     if (!Number.isFinite(time) || isNaN(time)) return '0:00';
@@ -164,13 +211,54 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
     }
   };
 
+  const findTrackIndex = (list: TrackInfo[] | undefined, track: TrackInfo | null) => {
+    if (!list || !track) return -1;
+    return list.findIndex(t => (t.id && track.id ? t.id === track.id : t.audioUrl === track.audioUrl));
+  };
+
+  const navigateToTrack = (target: TrackInfo) => {
+    // prefer to notify parent via onTrackChange
+    if (onTrackChange) {
+      onTrackChange(target);
+      return;
+    }
+    // if parent controls currentTrack but doesn't provide onTrackChange, try calling onPrev/onNext as fallback
+    if (currentTrack) {
+      if (onNext || onPrev) {
+        // calling existing handlers so parent can update
+        if (onNext) onNext();
+        if (onPrev) onPrev();
+        return;
+      }
+      // otherwise update audio source locally (UI may be out of sync with parent)
+    }
+    setInternalTrack(target);
+  };
+
   const handlePrev = () => {
+    if (tracks && tracks.length > 0) {
+      const idx = findTrackIndex(tracks, activeTrack);
+      const prevIdx = idx > 0 ? idx - 1 : tracks.length - 1; // wrap-around
+      const prev = tracks[prevIdx];
+      if (prev) {
+        navigateToTrack(prev);
+        return;
+      }
+    }
     if (onPrev) return onPrev();
-    // dispatch event for external handlers
     window.dispatchEvent(new CustomEvent('player-prev'));
   };
 
   const handleNext = () => {
+    if (tracks && tracks.length > 0) {
+      const idx = findTrackIndex(tracks, activeTrack);
+      const nextIdx = idx >= 0 && idx < tracks.length - 1 ? idx + 1 : 0; // wrap-around
+      const next = tracks[nextIdx];
+      if (next) {
+        navigateToTrack(next);
+        return;
+      }
+    }
     if (onNext) return onNext();
     window.dispatchEvent(new CustomEvent('player-next'));
   };
@@ -184,44 +272,36 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
   };
 
   const handleShowLyrics = () => {
-    if (!currentTrack) return;
-    // If a parent provided a handler, call it (preserve existing behavior)
-    if (onShowLyrics) onShowLyrics(currentTrack);
+    if (!activeTrack) return;
+    if (onShowLyrics) onShowLyrics(activeTrack);
 
-    // Determine whether we're opening the panel
     const isOpening = !showLyricsPanel;
     setShowLyricsPanel(isOpening);
 
     if (isOpening) {
       setLoadingLyrics(true);
       setLyricsError(null);
-      // prefer to request by track id if available
-      const trackTyped = currentTrack as TrackInfo & { id?: string | undefined };
+      const trackTyped = activeTrack as TrackInfo & { id?: string | undefined };
       const id = trackTyped?.id;
-      fetchLyrics(currentTrack.title, currentTrack.artistName, id)
+      fetchLyrics(activeTrack.title, activeTrack.artistName, id)
         .then((data: unknown) => {
-          // Backend may return { lyrics: string } or a raw string
           if (!data) return setLyrics('No lyrics found');
           if (typeof data === 'string') return setLyrics(data);
           if (typeof data === 'object' && data !== null) {
             const obj = data as Record<string, unknown>;
-            // prioritize explicit fields
             if ('lyrics' in obj && typeof obj.lyrics === 'string') return setLyrics(obj.lyrics);
             if ('data' in obj && typeof obj.data === 'object' && obj.data !== null) {
               const inner = obj.data as Record<string, unknown>;
               if ('lyrics' in inner && typeof inner.lyrics === 'string') return setLyrics(inner.lyrics);
             }
-            // If backend provides message or error field, surface it
             if ('message' in obj && typeof obj.message === 'string') return setLyricsError(obj.message);
             if ('error' in obj && typeof obj.error === 'string') return setLyricsError(obj.error);
-            // Fallback to stringify
             return setLyrics(JSON.stringify(obj));
           }
           return setLyrics('No lyrics available');
         })
         .catch((err: unknown) => {
           console.error('Failed to load lyrics', err);
-          // try to show backend message if present
           let msg = 'Unable to load lyrics';
           if (err && typeof err === 'object' && err !== null) {
             const e = err as { message?: unknown };
@@ -233,12 +313,11 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
         .finally(() => setLoadingLyrics(false));
 
     } else {
-      // closing - emit event for backward compatibility
-      window.dispatchEvent(new CustomEvent('player-lyrics', { detail: { track: currentTrack } }));
+      window.dispatchEvent(new CustomEvent('player-lyrics', { detail: { track: activeTrack } }));
     }
   };
 
-  if (!currentTrack) {
+  if (!activeTrack) {
     return (
       <div className="fixed bottom-0 left-0 w-full bg-gray-800 p-4 flex items-center justify-center text-white">
         No track selected
@@ -247,7 +326,7 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
   }
 
   return (
-    <div className="fixed bottom-0 left-0 w-full bg-gray-800 p-4 flex items-center justify-between text-white shadow-lg z-40">
+    <div className={`fixed bottom-0 left-0 w-full bg-gray-800 p-3 flex items-center justify-between text-white shadow-lg z-40 ${isCompact ? 'py-2' : ''}`}>
       <audio
         ref={audioRef}
         onTimeUpdate={onTimeUpdate}
@@ -256,68 +335,112 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
         preload="metadata"
       />
 
-      <div className="flex items-center min-w-0">
-        <button onClick={handlePrev} aria-label="Previous" className="p-2 rounded-md hover:bg-gray-700 transition-colors duration-150">
-          {/* Previous icon - corrected direction */}
-          <svg className="w-6 h-6 text-gray-300" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M18 6v12l-10.5-6L18 6zM6 6h2v12H6z" fill="currentColor" opacity="0.95" />
-          </svg>
-        </button>
+      <div className="flex items-center min-w-0 gap-3">
+        {/* album artwork removed per request */}
 
-        <button onClick={togglePlayPause} aria-label={isPlaying ? 'Pause' : 'Play'} className="mx-3 p-2 rounded-full hover:bg-gray-700 transition-colors duration-150">
-          {/* Play / Pause - YouTube Music style circular icon */}
-          {isPlaying ? (
-            <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.9" />
-              <rect x="9" y="8" width="2" height="8" fill="#0f172a" />
-              <rect x="13" y="8" width="2" height="8" fill="#0f172a" />
+        <div className="flex items-center">
+          <button onClick={handlePrev} aria-label="Previous" className="p-2 rounded-md hover:bg-gray-700 transition-colors duration-150">
+            <svg className="w-6 h-6 text-gray-300" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              {/* Left-pointing triangle + bar on the right for Previous */}
+              <path d="M15 18V6L7.5 12 15 18z" fill="currentColor" opacity="0.95" />
+              <rect x="17" y="6" width="2" height="12" fill="currentColor" opacity="0.95" />
             </svg>
-          ) : (
-            <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.9" />
-              <path d="M10 8l6 4-6 4V8z" fill="#0f172a" />
+          </button>
+
+          <button onClick={togglePlayPause} aria-label={isPlaying ? 'Pause' : 'Play'} className="mx-2 p-2 rounded-full hover:bg-gray-700 transition-colors duration-150">
+            {isPlaying ? (
+              <svg className="w-9 h-9 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.95" />
+                <rect x="9" y="8" width="2" height="8" fill="#0f172a" />
+                <rect x="13" y="8" width="2" height="8" fill="#0f172a" />
+              </svg>
+            ) : (
+              <svg className="w-9 h-9 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.95" />
+                <path d="M10 8l6 4-6 4V8z" fill="#0f172a" />
+              </svg>
+            )}
+          </button>
+
+          <button onClick={handleNext} aria-label="Next" className="p-2 rounded-md hover:bg-gray-700 transition-colors duration-150">
+            <svg className="w-6 h-6 text-gray-300" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              {/* Bar on the left + right-pointing triangle for Next */}
+              <rect x="5" y="6" width="2" height="12" fill="currentColor" opacity="0.95" />
+              <path d="M7.5 6L15 12 7.5 18V6z" fill="currentColor" opacity="0.95" />
             </svg>
-          )}
-        </button>
+          </button>
+        </div>
 
-        <button onClick={handleNext} aria-label="Next" className="p-2 rounded-md hover:bg-gray-700 transition-colors duration-150">
-          {/* Next icon - corrected direction */}
-          <svg className="w-6 h-6 text-gray-300" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M6 6h2v12H6zM16.5 12L6 6v12l10.5-6z" fill="currentColor" opacity="0.95" />
-          </svg>
-        </button>
-
-        <div className="text-sm ml-4 min-w-0">
-          <p className="font-bold truncate max-w-xs">{currentTrack.title}</p>
-          <p className="text-gray-400 truncate max-w-xs">{currentTrack.artistName}</p>
+        <div className="text-sm ml-2 min-w-0">
+          <p className="font-bold truncate max-w-xs">{activeTrack.title}</p>
+          <p className="text-gray-400 truncate max-w-xs">{activeTrack.artistName}</p>
         </div>
       </div>
 
-      <div className="flex items-center flex-1 px-4">
-        <span className="text-xs text-gray-400 w-12 text-right">{formatTime(currentTime)}</span>
+      <div className="flex items-center flex-1 px-4 min-w-0">
+        <span className="text-xs text-gray-400 w-12 text-right hidden sm:block">{formatTime(currentTime)}</span>
 
-        <input
-          type="range"
-          min={0}
-          max={Number.isFinite(duration) && duration > 0 ? duration : 0}
-          step={0.01}
-          value={Number.isFinite(currentTime) ? currentTime : 0}
-          onChange={handleSeekChange}
-          onKeyDown={onSeekKeyDown}
-          className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer mx-3"
-          aria-label="Seek"
-          role="slider"
-          aria-valuemin={0}
-          aria-valuemax={Number.isFinite(duration) ? duration : 0}
-          aria-valuenow={Number.isFinite(currentTime) ? currentTime : 0}
-        />
+        <div
+          ref={progressRef}
+          className="relative flex-1 mx-3 h-3 flex items-center"
+          aria-hidden="true"
+        >
+          {/* background */}
+          <div className="absolute inset-0 bg-gray-600 rounded-full" />
+          {/* buffered */}
+          <div className="absolute inset-y-0 left-0 bg-gray-500 rounded-full" style={{ width: duration ? `${Math.min(100, (buffered / duration) * 100)}%` : '0%' }} />
+          {/* played */}
+          <div className="absolute inset-y-0 left-0 bg-teal-500 rounded-full" style={{ width: duration ? `${Math.min(100, (currentTime / duration) * 100)}%` : '0%' }} />
 
-        <span className="text-xs text-gray-400 w-12">{formatTime(duration)}</span>
+          {/* accessible input on top */}
+          <input
+            type="range"
+            min={0}
+            max={Number.isFinite(duration) && duration > 0 ? duration : 0}
+            step={0.01}
+            value={Number.isFinite(currentTime) ? currentTime : 0}
+            onChange={handleSeekChange}
+            onKeyDown={onSeekKeyDown}
+            className="player-seek appearance-none w-full h-3 bg-transparent relative z-10 cursor-pointer"
+            aria-label="Seek"
+            role="slider"
+            aria-valuemin={0}
+            aria-valuemax={Number.isFinite(duration) ? duration : 0}
+            aria-valuenow={Number.isFinite(currentTime) ? currentTime : 0}
+          />
+          {/* Thumb styling for the seek control (white circle) */}
+          <style jsx>{`
+            .player-seek::-webkit-slider-thumb {
+              -webkit-appearance: none;
+              appearance: none;
+              width: 14px;
+              height: 14px;
+              border-radius: 50%;
+              background: #ffffff;
+              box-shadow: 0 0 0 4px rgba(255,255,255,0.02), 0 0 0 2px rgba(0,0,0,0.15);
+              border: none;
+              margin-top: -5px; /* center on 3px track */
+              cursor: pointer;
+            }
+            .player-seek::-webkit-slider-runnable-track { height: 6px; }
+            .player-seek::-moz-range-thumb {
+              width: 14px;
+              height: 14px;
+              border-radius: 50%;
+              background: #ffffff;
+              border: none;
+              box-shadow: 0 0 0 2px rgba(0,0,0,0.15);
+              cursor: pointer;
+            }
+            .player-seek::-moz-range-track { height: 6px; }
+          `}</style>
+        </div>
+
+        <span className="text-xs text-gray-400 w-12 hidden sm:block">{formatTime(duration)}</span>
       </div>
 
       <div className="flex items-center gap-3 ml-4">
         <button onClick={handleToggleLoop} aria-pressed={isLooping} className={`p-2 rounded-md transition-colors duration-150 ${isLooping ? 'bg-teal-600 text-black' : 'hover:bg-gray-700'}`} aria-label="Toggle loop">
-          {/* Loop icon */}
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M7 7h10v3l4-4-4-4v3H6a4 4 0 00-4 4v3h2V10a2 2 0 012-2z" fill="currentColor" opacity="0.95" />
             <path d="M17 17H7v-3l-4 4 4 4v-3h11a4 4 0 004-4v-3h-2v3a2 2 0 01-2 2z" fill="currentColor" opacity="0.95" />
@@ -325,15 +448,29 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
         </button>
 
         <button onClick={handleShowLyrics} className="p-2 rounded-md hover:bg-gray-700 transition-colors duration-150" aria-label="Lyrics">
-          {/* Lyrics icon (speech bubble + music note) */}
           <svg className="w-5 h-5 text-gray-300" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M21 6.5a2.5 2.5 0 00-2.5-2.5H5.5A2.5 2.5 0 003 6.5v7A2.5 2.5 0 005.5 16H7v3l3-3h8.5A2.5 2.5 0 0021 13.5v-7z" stroke="currentColor" strokeWidth="0" fill="currentColor" opacity="0.95" />
             <path d="M9 9v6l4-1.5V7" stroke="#0f172a" strokeWidth="0" />
           </svg>
         </button>
 
-        <button onClick={toggleMute} className="text-gray-300 hover:text-white" aria-label={isMuted ? 'Unmute' : 'Mute'}>
-          {isMuted || volume === 0 ? '🔇' : '🔊'}
+        <button onClick={toggleMute} className="p-2 rounded-md hover:bg-gray-700 transition-colors duration-150" aria-label={isMuted ? 'Unmute' : 'Mute'}>
+          {/* volume icons */}
+          {isMuted || volume === 0 ? (
+            <svg className="w-5 h-5 text-gray-200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M16.5 12a4.5 4.5 0 01-4.5 4.5V7.5a4.5 4.5 0 014.5 4.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M19 5l-14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          ) : volume > 0.5 ? (
+            <svg className="w-5 h-5 text-gray-200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M5 9v6h4l5 4V5L9 9H5z" fill="currentColor"/>
+              <path d="M19 8a5 5 0 010 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          ) : (
+            <svg className="w-5 h-5 text-gray-200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M5 9v6h4l5 4V5L9 9H5z" fill="currentColor"/>
+            </svg>
+          )}
         </button>
 
         <input
@@ -346,6 +483,16 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
           className="w-24 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer"
           aria-label="Volume"
         />
+
+        <button onClick={() => setIsCompact(!isCompact)} title="Toggle compact" className="p-2 rounded-md hover:bg-gray-700 transition-colors duration-150">
+          <svg className="w-5 h-5 text-gray-300" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            {isCompact ? (
+              <path d="M4 7h16v2H4V7zm0 4h10v2H4v-2z" fill="currentColor" />
+            ) : (
+              <path d="M4 6h16v2H4V6zm0 4h16v2H4v-2z" fill="currentColor" />
+            )}
+          </svg>
+        </button>
       </div>
 
       {/* Inline lyrics panel (renders above the player) */}
