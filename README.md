@@ -1,36 +1,151 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+🎵 Music Streaming App (Frontend + API)
 
-First, run the development server:
+This repository contains a full-stack music streaming project, split into two main applications:
 
-```bash
+music-streaming-api/ — Backend (Next.js API routes, Prisma + Supabase)
+
+music-streaming-frontend/ — Frontend (Next.js app, React)
+
+The backend exposes REST API endpoints for artists, albums, playlists, authentication, and search.
+The frontend consumes these APIs and provides a responsive UI with pages for discovery, artists, albums, playlists, profile, and authentication.
+
+👥 Members
+
+Nahom Demeke — Backend & API Development
+
+Tihitna Ejigu — Frontend / Client-side Development
+
+⚡ Tech Stack
+
+Frontend: Next.js (App Router), React
+
+Backend: Next.js (API Routes), Prisma
+
+Database / Storage: Supabase (Postgres & Storage Buckets)
+
+Authentication: JWT + bcrypt (backend)
+
+ORM: Prisma (connected to Supabase Postgres)
+
+📂 Project Structure (high-level)
+music-streaming-api/         # Backend
+ ├── app/api/                # API routes (artist, auth, discover, lyrics, playlist, profile, search)
+ ├── lib/prisma.ts           # Prisma client
+ ├── prisma/schema.prisma    # Database schema
+ └── middleware/             # Authentication & validation middleware
+
+music-streaming-frontend/    # Frontend
+ ├── app/                    # App router pages
+ ├── components/             # Shared UI components
+ └── services/               # API client helpers
+
+🗄️ Supabase (Database & Storage)
+
+This project uses Supabase for:
+
+Postgres Database (schema managed by Prisma)
+
+Storage Buckets (for album art, artist images, audio files, user avatars)
+
+Supabase assets are cached on a CDN to improve latency and reduce client-side processing.
+
+How it all fits together:
+
+Prisma manages and queries the Postgres database.
+
+Supabase Storage stores and serves media assets with signed URLs.
+
+Backend generates signed upload/download URLs when needed.
+
+Example Environment Variables
+
+Backend (.env):
+
+# Supabase Database
+DATABASE_URL="postgresql://USER:PASSWORD@aws-1-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://USER:PASSWORD@aws-1-eu-central-1.pooler.supabase.com:5432/postgres"
+
+# Auth
+JWT_SECRET="your-secret-key"
+
+
+Frontend (.env.local):
+
+NEXT_PUBLIC_API_BASE_URL=https://music-streaming-api-next.vercel.app
+
+🛠️ Local Development
+1. Prerequisites
+
+Node.js v18+
+
+npm / pnpm / yarn
+
+A Supabase project with Postgres + storage bucket
+
+2. Backend Setup
+cd music-streaming-api
+npm install
+
+
+Create .env and add DATABASE_URL, DIRECT_URL, JWT_SECRET.
+
+Run the development server:
+
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Database setup:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+npx prisma generate
+npx prisma db push        # or: npx prisma migrate deploy
 
-## Learn More
+3. Frontend Setup
+cd music-streaming-frontend
+npm install
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Create .env.local with NEXT_PUBLIC_API_BASE_URL.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Run the development server:
 
-## Deploy on Vercel
+npm run dev
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+By default, both Next.js apps run on port 3000.
+If running frontend and backend together, use different ports (e.g. backend on 3001).
+
+📌 API Endpoints (Quick Reference)
+Endpoint	Method	Description
+/api/auth/register	POST	Register a new user
+/api/auth/login	POST	Login & receive JWT
+/api/artist	GET	List artists
+/api/artist/[artist_id]	GET	Artist details
+/api/artist/[artist_id]/[album_id]	GET	Album details
+/api/discover	GET	Discovery home
+/api/discover/[genre_id]	GET	Discover by genre
+/api/lyrics	GET	Fetch lyrics
+/api/playlist	GET/POST	Manage playlists
+/api/playlist/[playlist_id]	GET	Playlist details
+/api/profile	GET	User profile (protected)
+/api/search	GET	Search across resources
+🚀 Deployment
+
+Both frontend and backend are deployed on Vercel.
+
+Next.js provides first-class support for Vercel deployments.
+
+🔮 Next Steps
+
+Verify Prisma schema matches your Supabase schema.
+
+Configure RLS policies and bucket permissions in Supabase before production.
+
+Consider using Supabase’s JS client for signed URL generation and media uploads.
+
+🤝 Contributing
+
+Open issues or PRs for bug fixes & improvements.
+
+Keep environment keys secret and out of source control.
