@@ -1,10 +1,9 @@
 🎵 Music Streaming App (Frontend + API)
 ℹ️ Notes
 
-Due to technical issues, only one track was uploaded to the Supabase storage bucket.
+Due to technical issues, only one track was uploaded to the Supabase storage bucket (Heavy- The marias).
 
-The relatively few commits here are because the repo was pushed from a different directory. The original Git repo with full history is here: 👉 nunush146/music-stream
-.
+The relatively few commits here are because the repo was pushed from a different directory. The original Git repo with full history is here: 👉 nunush146/music-stream.
 
 This repository now uses TypeScript instead of JavaScript, improving type-safety and error debugging.
 
@@ -23,6 +22,9 @@ The frontend consumes these APIs and provides a responsive UI with pages for dis
 Nahom Demeke — Backend & API Development
 
 Tihitna Ejigu — Frontend / Client-side Development
+
+Demo Vid:
+https://youtu.be/DsGJcb5_YaE?si=PQ_iS-EwqGGozEY5
 
 ⚡ Tech Stack
 
