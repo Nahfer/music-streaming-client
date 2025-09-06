@@ -36,20 +36,21 @@ Database / Storage: Supabase (Postgres & Storage Buckets)
 Authentication: JWT + bcrypt (backend)
 
 ORM: Prisma (connected to Supabase Postgres)
+```
+Project Structure (high-level)
 
- Project Structure (high-level)
-music-streaming-api/         # Backend
- ├── app/api/                # API routes (artist, auth, discover, lyrics, playlist, profile, search)
- ├── lib/prisma.ts           # Prisma client
- ├── prisma/schema.prisma    # Database schema
- └── middleware/             # Authentication & validation middleware
+<music-streaming-api/> # Backend
+<app/api/> # API routes (artist, auth, discover, lyrics, playlist, profile, search)
+<lib/prisma.ts> # Prisma client
+<prisma/schema.prisma> # Database schema
+<middleware/> # Authentication & validation middleware
 
-music-streaming-frontend/    # Frontend
- ├── app/                    # App router pages
- ├── components/             # Shared UI components
- └── services/               # API client helpers
-
-🗄 Supabase (Database & Storage)
+<music-streaming-frontend/> # Frontend
+<app/> # App router pages
+<components/> # Shared UI components
+<services/> # API client helpers
+```
+ ## Supabase (Database & Storage)
 
 This project uses Supabase for:
 
@@ -57,61 +58,65 @@ Postgres Database (schema managed by Prisma)
 
 Storage Buckets (for album art, artist images, audio files, user avatars)
 
-Supabase assets are cached on a CDN to improve latency and reduce client-side processing.
+All assets uploaded to Supabase Storage are cached on a Content Delivery Network (CDN) to improve the latency for users
 
-Example Environment Variables
+## Environment Variables
 Backend (.env)
-## Supabase Database .env key
+### Supabase Database .env key
 DATABASE_URL="postgresql://USER:PASSWORD@aws-1-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
 DIRECT_URL="postgresql://USER:PASSWORD@aws-1-eu-central-1.pooler.supabase.com:5432/postgres"
 
-## Auth .env key
+### Auth .env key
 JWT_SECRET="your-secret-key"
 
 Frontend (.env.local)
+## API BAse
 NEXT_PUBLIC_API_BASE_URL=https://music-streaming-api-next.vercel.app
 
- Local Development
+ ## Local Development
 1. Prerequisites
 
 Node.js v18+
 
 npm / pnpm / yarn
 
-A Supabase project with Postgres + storage bucket
+A Supabase project with Postgres + storage bucket (or any other database host provider)
 
-2. Backend Setup
+## 2. Backend Setup
+```
 cd music-streaming-api
 npm install
-
+```
 Create .env with DATABASE_URL, DIRECT_URL, and JWT_SECRET.
 
 Run the development server:
-
+```
 npm run dev
-
-Database setup:
-
+```
+## Database setup:
+```
 npx prisma generate
-npx prisma db push        # or: npx prisma migrate deploy
-
-3. Frontend Setup
+npx prisma db push 
+or: npx prisma migrate deploy
+```
+## 3. Frontend Setup
+```
 cd music-streaming-frontend
 npm install
-
+```
 
 Create .env.local with NEXT_PUBLIC_API_BASE_URL.
 
 Run the development server:
-
+```
 npm run dev
-
+```
 
 By default, both Next.js apps run on port 3000.
 If running frontend and backend together, assign different ports (e.g., backend on 3001).
 
- API Endpoints
-Endpoint	Method	Description
+## API Endpoint	Method	Description
+```
 /api/auth/register	POST	Register a new user
 /api/auth/login	POST	Login & receive JWT
 /api/artist	GET	List artists
@@ -125,11 +130,11 @@ Endpoint	Method	Description
 /api/profile	GET	User profile (protected)
 /api/search	GET	Search across resources
  Deployment
-
+```
 Both frontend and backend are deployed on Vercel.
 Next.js provides first-class support for Vercel deployments.
 
- Next Steps
+ ## Next Steps
 
 Verify Prisma schema matches your Supabase schema.
 
@@ -137,7 +142,7 @@ Configure RLS policies and bucket permissions in Supabase before production.
 
 Consider using Supabase’s JS client for signed URL generation and media uploads.
 
- Contributing
+ ## Contributing
 
 Open issues or PRs for bug fixes & improvements.
 
