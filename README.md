@@ -1,7 +1,6 @@
  Music Streaming App (Frontend + API)
-ℹ Notes
-
-Due to technical issues, only one track was uploaded to the Supabase storage bucket (Heavy- The marias).
+ 
+## ℹ Notes
 
 The relatively few commits here are because the repo was pushed from a different directory. The original Git repo with full history is here: [nunush146/music-stream.](https://github.com/nunush146/music-stream/blob/main/README.md)
 
@@ -62,11 +61,11 @@ Supabase assets are cached on a CDN to improve latency and reduce client-side pr
 
 Example Environment Variables
 Backend (.env)
-# Supabase Database
+## Supabase Database .env key
 DATABASE_URL="postgresql://USER:PASSWORD@aws-1-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
 DIRECT_URL="postgresql://USER:PASSWORD@aws-1-eu-central-1.pooler.supabase.com:5432/postgres"
 
-# Auth
+## Auth .env key
 JWT_SECRET="your-secret-key"
 
 Frontend (.env.local)
