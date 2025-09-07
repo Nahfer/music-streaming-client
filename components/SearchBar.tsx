@@ -156,7 +156,14 @@ const SearchBar: React.FC = () => {
         </Popover.Trigger>
 
         <Popover.Portal>
-          <Popover.Content align="center" sideOffset={8} className="mt-2 w-full bg-gray-800 border border-gray-700 shadow-xl z-50 max-h-80 overflow-y-auto" style={{ borderRadius: cornerRadius, overflow: 'hidden' }}>
+          <Popover.Content
+            align="center"
+            sideOffset={8}
+            role="listbox"
+            aria-label="Search results"
+            className="mt-2 w-full bg-gray-800 border border-gray-700 shadow-xl z-50 max-h-80 overflow-y-auto"
+            style={{ borderRadius: cornerRadius, overflow: 'hidden' }}
+          >
             {isLoading ? (
               <div className="p-4">
                 <Loading message="Searching..." />
@@ -167,16 +174,20 @@ const SearchBar: React.FC = () => {
                   <button
                     key={`${result.type}-${result.id}`}
                     onClick={() => handleResultClick(result.href)}
+                    role="option"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleResultClick(result.href); } }}
                     className="w-full px-4 py-3 text-left hover:bg-gray-700 transition-colors duration-200 flex items-center justify-between group"
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <div className="w-10 h-10 relative flex-shrink-0 rounded-md overflow-hidden bg-gray-700">
                         {result.thumbnail ? (
-                          (/^https?:\/\//i.test(result.thumbnail)) ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={result.thumbnail} alt={result.title} className="object-cover w-10 h-10" />
-                          ) : (
+                          result.thumbnail.startsWith('/') ? (
                             <Image src={result.thumbnail} alt={result.title} fill className="object-cover" sizes="40px" />
+                          ) : (
+                            // external images: use native img to avoid image optimization/domain issues; lazy-load for perf
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={result.thumbnail} alt={result.title} className="object-cover w-10 h-10" loading="lazy" />
                           )
                         ) : (
                           <div className="w-10 h-10 bg-gray-600" />
