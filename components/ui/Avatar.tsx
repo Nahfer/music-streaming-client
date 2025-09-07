@@ -1,5 +1,5 @@
 import React from 'react';
-import Image from 'next/image';
+import * as RadixAvatar from '@radix-ui/react-avatar';
 
 interface AvatarProps {
   src?: string;
@@ -30,24 +30,20 @@ const Avatar: React.FC<AvatarProps> = ({
     xl: 'text-2xl'
   };
 
-  if (src) {
-    return (
-      <div className={`relative ${sizeClasses[size]} rounded-full overflow-hidden ${className}`}>
-        <Image
-          src={src}
-          alt={alt}
-          fill
-          className="object-cover object-center"
-          sizes={`${size === 'sm' ? '32px' : size === 'md' ? '40px' : size === 'lg' ? '64px' : '128px'}`}
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className={`flex items-center justify-center ${sizeClasses[size]} rounded-full bg-teal-600 text-white font-semibold ${textSizeClasses[size]} ${className}`}>
-      {fallback}
-    </div>
+    <RadixAvatar.Root className={`inline-block align-middle ${className}`}>
+      {src ? (
+        <div className={`relative rounded-full overflow-hidden ${sizeClasses[size]}`}>
+          {/* Use a standard img tag here to avoid Next/Image unused import warnings in places where public assets are used. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={src} alt={alt} className="object-cover w-full h-full" />
+        </div>
+      ) : (
+        <RadixAvatar.Fallback className={`flex items-center justify-center ${sizeClasses[size]} rounded-full bg-teal-600 text-white font-semibold ${textSizeClasses[size]}`}>
+          {fallback}
+        </RadixAvatar.Fallback>
+      )}
+    </RadixAvatar.Root>
   );
 };
 

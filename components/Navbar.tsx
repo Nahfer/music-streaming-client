@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import SearchBar from './SearchBar';
+import { User, Music } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const router = useRouter();
@@ -37,7 +38,8 @@ const Navbar: React.FC = () => {
       <div className="w-full flex items-center relative">
         {/* Left - App name (increased left padding) */}
         <div className="flex items-center pl-4">
-          <button onClick={() => router.push('/')} className="text-lg font-bold text-white">
+          <button onClick={() => router.push('/')} className="flex items-center text-lg font-bold text-white">
+            <Music className="w-6 h-6 mr-2" strokeWidth={1.8} color="#14b8a6" aria-hidden />
             Music Stream
           </button>
         </div>
@@ -60,11 +62,7 @@ const Navbar: React.FC = () => {
             ) : (
               // Show profile icon on other pages
               <button onClick={() => router.push('/profile')} aria-label="Profile" className="p-2 rounded-full hover:bg-gray-700 transition-colors duration-200">
-                {/* YouTube Music style account icon */}
-                <svg className="w-8 h-8 text-gray-300" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <circle cx="12" cy="8" r="3.2" fill="currentColor" opacity="0.95" />
-                  <path d="M4 20c0-3.31 3.58-6 8-6s8 2.69 8 6v1H4v-1z" fill="currentColor" opacity="0.95" />
-                </svg>
+                <User className="w-8 h-8 text-gray-300" />
               </button>
             )
           ) : (

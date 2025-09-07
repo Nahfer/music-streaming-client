@@ -3,6 +3,8 @@
 import React, { useEffect, useState, type ReactElement } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Home, Users, Search, List } from 'lucide-react';
+import * as Tooltip from '@radix-ui/react-tooltip';
 
 const Sidebar = () => {
   const pathname = usePathname();
@@ -22,108 +24,10 @@ const Sidebar = () => {
   }, []);
 
   const navigationItems: Array<{ href: string; label: string; icon: ReactElement }> = [
-    {
-      href: '/',
-      label: 'Home',
-      icon: (
-        <svg
-          className="w-6 h-6"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path
-            d="M3 11.5L12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-8.5z"
-            stroke="currentColor"
-            strokeWidth="0"
-            fill="currentColor"
-            opacity="0.95"
-          />
-        </svg>
-      ),
-    },
-    {
-      href: '/artists',
-      label: 'Artists',
-      icon: (
-        <svg
-          className="w-6 h-6"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path
-            d="M12 12a4 4 0 100-8 4 4 0 000 8zM4 20a8 8 0 0116 0H4z"
-            stroke="currentColor"
-            strokeWidth="0"
-            fill="currentColor"
-            opacity="0.95"
-          />
-        </svg>
-      ),
-    },
-    {
-      href: '/discover',
-      label: 'Discover',
-      icon: (
-        <svg
-          className="w-6 h-6"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path
-            d="M21 21l-4.35-4.35"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <circle
-            cx="11"
-            cy="11"
-            r="6"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ),
-    },
-    {
-      href: '/playlists',
-      label: 'Playlists',
-      icon: (
-        <svg
-          className="w-6 h-6"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path
-            d="M3 6h14M3 10h14M3 14h10"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <circle
-            cx="19"
-            cy="15"
-            r="3"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ),
-    },
+    { href: '/', label: 'Home', icon: <Home className="w-6 h-6" /> },
+    { href: '/artists', label: 'Artists', icon: <Users className="w-6 h-6" /> },
+    { href: '/discover', label: 'Discover', icon: <Search className="w-6 h-6" /> },
+    { href: '/playlists', label: 'Playlists', icon: <List className="w-6 h-6" /> },
   ];
 
   // Hide sidebar entirely for unauthenticated users
@@ -145,9 +49,20 @@ const Sidebar = () => {
                     : 'text-gray-300 hover:text-white hover:bg-gray-800'
                 }`}
               >
-                <span className={`flex-shrink-0 ${isActive ? 'text-accent' : 'text-gray-300'}`}>
-                  {item.icon}
-                </span>
+                <Tooltip.Provider>
+                  <Tooltip.Root>
+                    <Tooltip.Trigger asChild>
+                      <span className={`flex-shrink-0 ${isActive ? 'text-accent' : 'text-gray-300'}`}>
+                        {item.icon}
+                      </span>
+                    </Tooltip.Trigger>
+                    <Tooltip.Content side="right" className="bg-gray-800 text-white px-2 py-1 rounded text-sm shadow-md">
+                      {item.label}
+                      <Tooltip.Arrow className="fill-current text-gray-800" />
+                    </Tooltip.Content>
+                  </Tooltip.Root>
+                </Tooltip.Provider>
+
                 <span className={`font-medium ${isActive ? 'text-accent' : ''}`}>{item.label}</span>
               </Link>
             );

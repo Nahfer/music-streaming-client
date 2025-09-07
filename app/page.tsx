@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { fetchUserProfile } from '@/services/api';
+import { UserPlus } from 'lucide-react';
 
 export default function Home() {
   const router = useRouter();
@@ -127,7 +128,7 @@ export default function Home() {
           {!isAuthenticated && (
             <Button variant="outline" size="lg">
               <Link href="/signup" className="flex items-center space-x-2">
-                <span>✨</span>
+                <UserPlus className="w-5 h-5" />
                 <span>Create Account</span>
               </Link>
             </Button>
@@ -141,13 +142,12 @@ export default function Home() {
           <Card key={index} hover className="group cursor-pointer overflow-hidden">
             <Link href={feature.href} className="block" onClick={(e) => handleCardClick(feature.href, e)}>
               <div className="relative w-full h-48 sm:h-56 md:h-48 lg:h-56 xl:h-64 overflow-hidden">
-                {/* Use plain <img> to ensure public assets load reliably in all environments */}
-                <img
+                <Image
                   src={feature.image}
                   alt={feature.title}
-                  loading="lazy"
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/file.svg'; }}
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                  fill
+                  className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
 
                 {/* Dark gradient overlay so text is readable */}

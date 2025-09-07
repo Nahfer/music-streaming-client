@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Input from './ui/Input';
 import { searchAll } from '@/services/api';
+import * as Popover from '@radix-ui/react-popover';
+import { Search as SearchIcon, ChevronsRight } from 'lucide-react';
 
 interface SearchResult {
   id: string;
@@ -134,73 +136,72 @@ const SearchBar: React.FC = () => {
 
   return (
     <div ref={searchRef} className="relative w-full">
-      <Input
-        type="text"
-        placeholder="Search artists, albums, tracks..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        onFocus={() => query.length >= 2 && setShowResults(true)}
-        icon={
-          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        }
-        className="w-full"
-        style={{ borderRadius: cornerRadius }}
-      />
+      <Popover.Root open={showResults} onOpenChange={setShowResults}>
+        <Popover.Trigger asChild>
+          <div>
+            <Input
+              type="text"
+              placeholder="Search artists, albums, tracks..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onFocus={() => query.length >= 2 && setShowResults(true)}
+              icon={
+                <SearchIcon className="w-5 h-5 text-gray-400" />
+              }
+              className="w-full"
+              style={{ borderRadius: cornerRadius }}
+            />
+          </div>
+        </Popover.Trigger>
 
-      {showResults && (
-        <div
-          className="absolute top-full mt-2 w-full bg-gray-800 border border-gray-700 shadow-xl z-50 max-h-80 overflow-y-auto"
-          style={{ borderRadius: cornerRadius, overflow: 'hidden' }}
-        >
-          {isLoading ? (
-            <div className="p-4 text-center text-gray-400">
-              <div className="animate-spin w-6 h-6 border-2 border-teal-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-              Searching...
-            </div>
-          ) : results.length > 0 ? (
-            <div className="py-2">
-              {results.map((result) => (
-                <button
-                  key={`${result.type}-${result.id}`}
-                  onClick={() => handleResultClick(result.href)}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-700 transition-colors duration-200 flex items-center justify-between group"
-                >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="w-10 h-10 relative flex-shrink-0 rounded-md overflow-hidden bg-gray-700">
-                      {result.thumbnail ? (
-                        (/^https?:\/\//i.test(result.thumbnail)) ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={result.thumbnail} alt={result.title} className="object-cover w-10 h-10" />
+        <Popover.Portal>
+          <Popover.Content align="center" sideOffset={8} className="mt-2 w-full bg-gray-800 border border-gray-700 shadow-xl z-50 max-h-80 overflow-y-auto" style={{ borderRadius: cornerRadius, overflow: 'hidden' }}>
+            {isLoading ? (
+              <div className="p-4 text-center text-gray-400">
+                <div className="animate-spin w-6 h-6 border-2 border-teal-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                Searching...
+              </div>
+            ) : results.length > 0 ? (
+              <div className="py-2">
+                {results.map((result) => (
+                  <button
+                    key={`${result.type}-${result.id}`}
+                    onClick={() => handleResultClick(result.href)}
+                    className="w-full px-4 py-3 text-left hover:bg-gray-700 transition-colors duration-200 flex items-center justify-between group"
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 relative flex-shrink-0 rounded-md overflow-hidden bg-gray-700">
+                        {result.thumbnail ? (
+                          (/^https?:\/\//i.test(result.thumbnail)) ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={result.thumbnail} alt={result.title} className="object-cover w-10 h-10" />
+                          ) : (
+                            <Image src={result.thumbnail} alt={result.title} fill className="object-cover" sizes="40px" />
+                          )
                         ) : (
-                          <Image src={result.thumbnail} alt={result.title} fill className="object-cover" sizes="40px" />
-                        )
-                      ) : (
-                        <div className="w-10 h-10 bg-gray-600" />
-                      )}
+                          <div className="w-10 h-10 bg-gray-600" />
+                        )}
 
+                        </div>
+
+                      <div className="truncate">
+                        <div className="text-white font-medium truncate">{result.title}</div>
+                        {result.subtitle && <div className={`text-sm ${getTypeColor(result.type)} capitalize truncate`}>{result.subtitle}</div>}
                       </div>
-
-                    <div className="truncate">
-                      <div className="text-white font-medium truncate">{result.title}</div>
-                      {result.subtitle && <div className={`text-sm ${getTypeColor(result.type)} capitalize truncate`}>{result.subtitle}</div>}
                     </div>
-                  </div>
 
-                  <svg className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors duration-200 ml-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              ))}
-            </div>
-          ) : query.length >= 2 ? (
-            <div className="p-4 text-center text-gray-400">
-              {`No results found for "${query}"`}
-            </div>
-          ) : null}
-        </div>
-      )}
+                    <ChevronsRight className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors duration-200 ml-2 flex-shrink-0" />
+                  </button>
+                ))}
+              </div>
+            ) : query.length >= 2 ? (
+              <div className="p-4 text-center text-gray-400">
+                {`No results found for "${query}"`}
+              </div>
+            ) : null}
+          </Popover.Content>
+        </Popover.Portal>
+      </Popover.Root>
     </div>
   );
 };

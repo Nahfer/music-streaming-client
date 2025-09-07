@@ -2,6 +2,7 @@
 
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { fetchLyrics } from '../services/api';
+import { SkipBack, Play, Pause, SkipForward, Repeat, Music, VolumeX, Volume, Volume2 } from 'lucide-react';
 
 interface TrackInfo {
   id?: string;
@@ -39,7 +40,6 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
   const [lyrics, setLyrics] = useState<string | null>(null);
   const [loadingLyrics, setLoadingLyrics] = useState(false);
   const [lyricsError, setLyricsError] = useState<string | null>(null);
-  const [isCompact, setIsCompact] = useState(false);
 
   // activeTrack: prefer parent-controlled currentTrack, fallback to internalTrack
   const activeTrack = currentTrack ?? internalTrack;
@@ -213,7 +213,14 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
 
   const findTrackIndex = (list: TrackInfo[] | undefined, track: TrackInfo | null) => {
     if (!list || !track) return -1;
-    return list.findIndex(t => (t.id && track.id ? t.id === track.id : t.audioUrl === track.audioUrl));
+    return list.findIndex(t => {
+      // prefer id if available
+      if (t.id && track.id) return t.id === track.id;
+      // fallback to audioUrl match
+      if (t.audioUrl && track.audioUrl) return t.audioUrl === track.audioUrl;
+      // final fallback: title + artist
+      return t.title === track.title && t.artistName === track.artistName;
+    });
   };
 
   const navigateToTrack = (target: TrackInfo) => {
@@ -242,10 +249,13 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
       const prev = tracks[prevIdx];
       if (prev) {
         navigateToTrack(prev);
+        // notify listeners in case parent doesn't update
+        window.dispatchEvent(new CustomEvent('player-prev', { detail: { track: prev } }));
         return;
       }
     }
-    if (onPrev) return onPrev();
+    if (onPrev) onPrev();
+    // always emit as a reliable fallback
     window.dispatchEvent(new CustomEvent('player-prev'));
   };
 
@@ -256,10 +266,13 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
       const next = tracks[nextIdx];
       if (next) {
         navigateToTrack(next);
+        // notify listeners in case parent doesn't update
+        window.dispatchEvent(new CustomEvent('player-next', { detail: { track: next } }));
         return;
       }
     }
-    if (onNext) return onNext();
+    if (onNext) onNext();
+    // always emit as a reliable fallback
     window.dispatchEvent(new CustomEvent('player-next'));
   };
 
@@ -326,7 +339,7 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
   }
 
   return (
-    <div className={`fixed bottom-0 left-0 w-full bg-gray-800 p-3 flex items-center justify-between text-white shadow-lg z-40 ${isCompact ? 'py-2' : ''}`}>
+    <div className="fixed bottom-0 left-0 w-full bg-gray-800 p-3 flex items-center justify-between text-white shadow-lg z-40">
       <audio
         ref={audioRef}
         onTimeUpdate={onTimeUpdate}
@@ -339,35 +352,20 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
         {/* album artwork removed per request */}
 
         <div className="flex items-center">
-          <button onClick={handlePrev} aria-label="Previous" className="p-2 rounded-md hover:bg-gray-700 transition-colors duration-150">
-            <svg className="w-6 h-6 text-gray-300" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              {/* Left-pointing triangle + bar on the right for Previous */}
-              <path d="M15 18V6L7.5 12 15 18z" fill="currentColor" opacity="0.95" />
-              <rect x="17" y="6" width="2" height="12" fill="currentColor" opacity="0.95" />
-            </svg>
+          <button onClick={handlePrev} aria-label="Previous" className="p-2 rounded-md hover:bg-gray-700 transition-colors duration-150" type="button">
+            <SkipBack className="w-6 h-6 text-gray-300" />
           </button>
 
-          <button onClick={togglePlayPause} aria-label={isPlaying ? 'Pause' : 'Play'} className="mx-2 p-2 rounded-full hover:bg-gray-700 transition-colors duration-150">
+          <button onClick={togglePlayPause} aria-label={isPlaying ? 'Pause' : 'Play'} className="mx-2 p-2 rounded-full hover:bg-gray-700 transition-colors duration-150" type="button">
             {isPlaying ? (
-              <svg className="w-9 h-9 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.95" />
-                <rect x="9" y="8" width="2" height="8" fill="#0f172a" />
-                <rect x="13" y="8" width="2" height="8" fill="#0f172a" />
-              </svg>
+              <Pause className="w-9 h-9 text-white" />
             ) : (
-              <svg className="w-9 h-9 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.95" />
-                <path d="M10 8l6 4-6 4V8z" fill="#0f172a" />
-              </svg>
+              <Play className="w-9 h-9 text-white" />
             )}
           </button>
 
-          <button onClick={handleNext} aria-label="Next" className="p-2 rounded-md hover:bg-gray-700 transition-colors duration-150">
-            <svg className="w-6 h-6 text-gray-300" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              {/* Bar on the left + right-pointing triangle for Next */}
-              <rect x="5" y="6" width="2" height="12" fill="currentColor" opacity="0.95" />
-              <path d="M7.5 6L15 12 7.5 18V6z" fill="currentColor" opacity="0.95" />
-            </svg>
+          <button onClick={handleNext} aria-label="Next" className="p-2 rounded-md hover:bg-gray-700 transition-colors duration-150" type="button">
+            <SkipForward className="w-6 h-6 text-gray-300" />
           </button>
         </div>
 
@@ -386,13 +384,13 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
           aria-hidden="true"
         >
           {/* background */}
-          <div className="absolute inset-0 bg-gray-600 rounded-full" />
+          <div className="absolute inset-0 bg-gray-700 rounded-full" />
           {/* buffered */}
           <div className="absolute inset-y-0 left-0 bg-gray-500 rounded-full" style={{ width: duration ? `${Math.min(100, (buffered / duration) * 100)}%` : '0%' }} />
-          {/* played */}
-          <div className="absolute inset-y-0 left-0 bg-teal-500 rounded-full" style={{ width: duration ? `${Math.min(100, (currentTime / duration) * 100)}%` : '0%' }} />
+          {/* played (high-contrast) */}
+          <div className="absolute inset-y-0 left-0 bg-white rounded-full" style={{ width: duration ? `${Math.min(100, (currentTime / duration) * 100)}%` : '0%' }} />
 
-          {/* accessible input on top */}
+          {/* accessible input on top (thumb hidden visually) */}
           <input
             type="range"
             min={0}
@@ -408,31 +406,38 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
             aria-valuemax={Number.isFinite(duration) ? duration : 0}
             aria-valuenow={Number.isFinite(currentTime) ? currentTime : 0}
           />
-          {/* Thumb styling for the seek control (white circle) */}
+
           <style jsx>{`
+            /* Seeker: hide the visual thumb across browsers but keep the control interactive for mouse and keyboard */
+            .player-seek { -webkit-appearance: none; appearance: none; background: transparent; height: 6px; }
+
             .player-seek::-webkit-slider-thumb {
               -webkit-appearance: none;
               appearance: none;
-              width: 14px;
-              height: 14px;
-              border-radius: 50%;
-              background: #ffffff;
-              box-shadow: 0 0 0 4px rgba(255,255,255,0.02), 0 0 0 2px rgba(0,0,0,0.15);
+              width: 0;
+              height: 0;
+              background: transparent;
               border: none;
-              margin-top: -5px; /* center on 3px track */
-              cursor: pointer;
             }
-            .player-seek::-webkit-slider-runnable-track { height: 6px; }
-            .player-seek::-moz-range-thumb {
-              width: 14px;
-              height: 14px;
-              border-radius: 50%;
-              background: #ffffff;
-              border: none;
-              box-shadow: 0 0 0 2px rgba(0,0,0,0.15);
-              cursor: pointer;
-            }
-            .player-seek::-moz-range-track { height: 6px; }
+            .player-seek::-webkit-slider-runnable-track { height: 6px; border-radius: 9999px; background: transparent; }
+
+            .player-seek::-moz-range-thumb { width: 0; height: 0; background: transparent; border: none; }
+            .player-seek::-moz-range-track { height: 6px; border-radius: 9999px; background: transparent; }
+
+            /* keep a subtle focus ring for keyboard users */
+            .player-seek:focus { outline: 2px solid rgba(255,255,255,0.08); outline-offset: 2px; }
+
+            /* Volume slider styles (unchanged) */
+            .player-volume { background: linear-gradient(to right, #14b8a6 0%, #14b8a6 50%, #374151 50%); }
+            .player-volume::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.18); margin-top: -5px; cursor: pointer; transition: transform 120ms ease; }
+            .player-volume:focus::-webkit-slider-thumb, .player-volume:hover::-webkit-slider-thumb { transform: scale(1.08); }
+            .player-volume::-webkit-slider-runnable-track { height: 6px; border-radius: 9999px; background: #374151; }
+
+            .player-volume::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.16); }
+            .player-volume::-moz-range-track { height: 6px; border-radius: 9999px; background: #374151; }
+
+            /* small accessibility focus ring */
+            .player-volume:focus { outline: 2px solid rgba(20,184,166,0.12); outline-offset: 2px; }
           `}</style>
         </div>
 
@@ -441,35 +446,22 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
 
       <div className="flex items-center gap-3 ml-4">
         <button onClick={handleToggleLoop} aria-pressed={isLooping} className={`p-2 rounded-md transition-colors duration-150 ${isLooping ? 'bg-teal-600 text-black' : 'hover:bg-gray-700'}`} aria-label="Toggle loop">
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M7 7h10v3l4-4-4-4v3H6a4 4 0 00-4 4v3h2V10a2 2 0 012-2z" fill="currentColor" opacity="0.95" />
-            <path d="M17 17H7v-3l-4 4 4 4v-3h11a4 4 0 004-4v-3h-2v3a2 2 0 01-2 2z" fill="currentColor" opacity="0.95" />
-          </svg>
+          <Repeat className="w-5 h-5" />
         </button>
 
-        <button onClick={handleShowLyrics} className="p-2 rounded-md hover:bg-gray-700 transition-colors duration-150" aria-label="Lyrics">
-          <svg className="w-5 h-5 text-gray-300" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M21 6.5a2.5 2.5 0 00-2.5-2.5H5.5A2.5 2.5 0 003 6.5v7A2.5 2.5 0 005.5 16H7v3l3-3h8.5A2.5 2.5 0 0021 13.5v-7z" stroke="currentColor" strokeWidth="0" fill="currentColor" opacity="0.95" />
-            <path d="M9 9v6l4-1.5V7" stroke="#0f172a" strokeWidth="0" />
-          </svg>
+        <button onClick={handleShowLyrics} className="flex items-center p-2 rounded-md hover:bg-gray-700 transition-colors duration-150" aria-label="Lyrics">
+          <Music className="w-5 h-5 text-gray-300" />
+          <span className="ml-2 text-sm text-gray-300">Lyrics</span>
         </button>
 
         <button onClick={toggleMute} className="p-2 rounded-md hover:bg-gray-700 transition-colors duration-150" aria-label={isMuted ? 'Unmute' : 'Mute'}>
-          {/* volume icons */}
+          {/* volume icons: show muted, low, and loud states */}
           {isMuted || volume === 0 ? (
-            <svg className="w-5 h-5 text-gray-200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path d="M16.5 12a4.5 4.5 0 01-4.5 4.5V7.5a4.5 4.5 0 014.5 4.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M19 5l-14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <VolumeX className="w-5 h-5 text-gray-200" />
           ) : volume > 0.5 ? (
-            <svg className="w-5 h-5 text-gray-200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path d="M5 9v6h4l5 4V5L9 9H5z" fill="currentColor"/>
-              <path d="M19 8a5 5 0 010 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <Volume2 className="w-5 h-5 text-gray-200" />
           ) : (
-            <svg className="w-5 h-5 text-gray-200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path d="M5 9v6h4l5 4V5L9 9H5z" fill="currentColor"/>
-            </svg>
+            <Volume className="w-5 h-5 text-gray-200" />
           )}
         </button>
 
@@ -480,19 +472,12 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
           step={0.01}
           value={volume}
           onChange={(e) => handleVolumeChange(Number(e.target.value))}
-          className="w-24 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+          className="player-volume w-24 h-2 rounded-lg appearance-none cursor-pointer"
           aria-label="Volume"
+          style={{ background: `linear-gradient(to right, #14b8a6 0%, #14b8a6 ${Math.round(volume * 100)}%, #374151 ${Math.round(volume * 100)}%)` }}
         />
 
-        <button onClick={() => setIsCompact(!isCompact)} title="Toggle compact" className="p-2 rounded-md hover:bg-gray-700 transition-colors duration-150">
-          <svg className="w-5 h-5 text-gray-300" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            {isCompact ? (
-              <path d="M4 7h16v2H4V7zm0 4h10v2H4v-2z" fill="currentColor" />
-            ) : (
-              <path d="M4 6h16v2H4V6zm0 4h16v2H4v-2z" fill="currentColor" />
-            )}
-          </svg>
-        </button>
+        {/* compact toggle removed — was redundant */}
       </div>
 
       {/* Inline lyrics panel (renders above the player) */}
