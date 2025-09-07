@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { register } from '@/services/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import * as Select from '@radix-ui/react-select';
+import { Check, ChevronDown } from 'lucide-react';
 
 const SignupPage = () => {
   const [name, setName] = useState('');
@@ -99,37 +101,72 @@ const SignupPage = () => {
           </div>
           <div className="mb-4">
             <label htmlFor="gender" className="block text-gray-300 text-sm font-medium mb-2">Gender</label>
-            <div className="relative">
-              <select
-                id="gender"
-                className="w-full bg-[--panel] border border-gray-700 text-white rounded-md py-2 px-3 pr-10 appearance-none focus:outline-none focus:ring-2 focus:ring-accent"
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
-              >
-                <option value="UNDEFINED">Undefined</option>
-                <option value="MALE">Male</option>
-                <option value="FEMALE">Female</option>
-              </select>
-              <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-accent" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+            <div>
+              <Select.Root value={gender} onValueChange={(v: string) => setGender(v)}>
+                <Select.Trigger className="w-full bg-[--panel] border border-gray-700 text-white rounded-md py-2 px-3 pr-10 appearance-none focus:outline-none focus:ring-2 focus:ring-accent flex items-center justify-between" aria-label="Gender">
+                  <Select.Value placeholder="Undefined" />
+                  <Select.Icon>
+                    <ChevronDown className="w-4 h-4 text-accent" />
+                  </Select.Icon>
+                </Select.Trigger>
+
+                <Select.Portal>
+                  <Select.Content className="bg-[--panel] border border-gray-700 rounded-md shadow-lg mt-2 overflow-hidden" sideOffset={6}>
+                    <Select.Viewport>
+                      <Select.Item value="UNDEFINED" className="px-3 py-2 text-sm text-white hover:bg-gray-700 flex items-center justify-between">
+                        <Select.ItemText>Undefined</Select.ItemText>
+                        <Select.ItemIndicator>
+                          <Check className="w-4 h-4 text-accent" />
+                        </Select.ItemIndicator>
+                      </Select.Item>
+                      <Select.Item value="MALE" className="px-3 py-2 text-sm text-white hover:bg-gray-700 flex items-center justify-between">
+                        <Select.ItemText>Male</Select.ItemText>
+                        <Select.ItemIndicator>
+                          <Check className="w-4 h-4 text-accent" />
+                        </Select.ItemIndicator>
+                      </Select.Item>
+                      <Select.Item value="FEMALE" className="px-3 py-2 text-sm text-white hover:bg-gray-700 flex items-center justify-between">
+                        <Select.ItemText>Female</Select.ItemText>
+                        <Select.ItemIndicator>
+                          <Check className="w-4 h-4 text-accent" />
+                        </Select.ItemIndicator>
+                      </Select.Item>
+                    </Select.Viewport>
+                  </Select.Content>
+                </Select.Portal>
+              </Select.Root>
             </div>
           </div>
           <div className="mb-4">
             <label htmlFor="type" className="block text-gray-300 text-sm font-medium mb-2">Type</label>
-            <div className="relative">
-              <select
-                id="type"
-                className="w-full bg-[--panel] border border-gray-700 text-white rounded-md py-2 px-3 pr-10 appearance-none focus:outline-none focus:ring-2 focus:ring-accent"
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-              >
-                <option value="LISTENER">Listener</option>
-                <option value="ARTIST">Artist</option>
-              </select>
-              <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-accent" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+            <div>
+              <Select.Root value={type} onValueChange={(v: string) => setType(v)}>
+                <Select.Trigger className="w-full bg-[--panel] border border-gray-700 text-white rounded-md py-2 px-3 pr-10 appearance-none focus:outline-none focus:ring-2 focus:ring-accent flex items-center justify-between" aria-label="Account type">
+                  <Select.Value placeholder="Listener" />
+                  <Select.Icon>
+                    <ChevronDown className="w-4 h-4 text-accent" />
+                  </Select.Icon>
+                </Select.Trigger>
+
+                <Select.Portal>
+                  <Select.Content className="bg-[--panel] border border-gray-700 rounded-md shadow-lg mt-2 overflow-hidden" sideOffset={6}>
+                    <Select.Viewport>
+                      <Select.Item value="LISTENER" className="px-3 py-2 text-sm text-white hover:bg-gray-700 flex items-center justify-between">
+                        <Select.ItemText>Listener</Select.ItemText>
+                        <Select.ItemIndicator>
+                          <Check className="w-4 h-4 text-accent" />
+                        </Select.ItemIndicator>
+                      </Select.Item>
+                      <Select.Item value="ARTIST" className="px-3 py-2 text-sm text-white hover:bg-gray-700 flex items-center justify-between">
+                        <Select.ItemText>Artist</Select.ItemText>
+                        <Select.ItemIndicator>
+                          <Check className="w-4 h-4 text-accent" />
+                        </Select.ItemIndicator>
+                      </Select.Item>
+                    </Select.Viewport>
+                  </Select.Content>
+                </Select.Portal>
+              </Select.Root>
             </div>
           </div>
           <div className="mb-4">
