@@ -5,6 +5,7 @@ import { fetchArtists } from '@/services/api';
 import Link from 'next/link';
 import Image from 'next/image';
 import Card from '@/components/ui/Card';
+import Loading from '@/components/ui/Loading';
 
 interface Artist {
   aid: string;
@@ -36,16 +37,7 @@ const ArtistsPage = () => {
     getArtists();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading artists...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <Loading message="Loading artists..." />;
 
   if (error) {
     return (
@@ -70,7 +62,7 @@ const ArtistsPage = () => {
           <Card key={artist.aid} hover className="group overflow-hidden">
             <Link href={`/artist/${artist.aid}`} className="block">
               {/* Full-width square area with a centered circular image */}
-              <div className="w-full aspect-square rounded-xl overflow-hidden relative flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+              <div className="w-full aspect-square rounded-xl overflow-hidden relative flex items-center justify-center transition-transform duration-200 group-hover:scale-105 ring-0 group-hover:ring-2 group-hover:ring-teal-500 group-hover:ring-offset-2 group-hover:ring-offset-gray-900">
                 <div className="w-3/4 aspect-square rounded-full overflow-hidden relative">
                   <Image
                     src={artist.profileImageUrl || '/default-artist.png'}

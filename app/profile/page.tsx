@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Card from '@/components/ui/Card';
 import Avatar from '@/components/ui/Avatar';
+import Loading from '@/components/ui/Loading';
 
 interface UserAlbum {
   aaid: string;
@@ -50,16 +51,7 @@ const ProfilePage = () => {
 
   // Sign out is handled by the header replacement and the ProfileDropdown; no button in the profile card
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <Loading message="Loading profile..." />;
 
   if (error) {
     return (
@@ -122,7 +114,7 @@ const ProfilePage = () => {
         {userProfile.albums.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-400 mb-4">
-              <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
             </div>
@@ -134,7 +126,7 @@ const ProfilePage = () => {
             {userProfile.albums.map((album) => (
               <Card key={album.aaid} hover className="group overflow-hidden">
                 <Link href={`/artist/${userProfile.aid}/${album.aaid}`} className="block">
-                  <div className="w-full aspect-square rounded-xl overflow-hidden relative group-hover:scale-105 transition-transform duration-200">
+                  <div className="w-full aspect-square rounded-xl overflow-hidden relative transition-transform duration-200 group-hover:scale-105 ring-0 group-hover:ring-2 group-hover:ring-teal-500 group-hover:ring-offset-2 group-hover:ring-offset-gray-900">
                     <Image
                       src={album.albumCover || '/default-album.png'}
                       alt={album.title}

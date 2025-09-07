@@ -5,6 +5,7 @@ import { fetchGenres } from '@/services/api';
 import Link from 'next/link';
 import Image from 'next/image';
 import Card from '@/components/ui/Card';
+import Loading from '@/components/ui/Loading';
 
 interface Genre {
   gid: string; // Now actually returned by the backend
@@ -37,16 +38,7 @@ const DiscoverPage = () => {
     getGenres();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading genres...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <Loading message="Loading genres..." />;
 
   if (error) {
     return (
@@ -70,8 +62,8 @@ const DiscoverPage = () => {
         {genres.map((genre) => (
           <Card key={genre.gid} hover className="group overflow-hidden">
             <Link href={`/discover/${genre.gid}`} className="block">
-              {/* Full-width square image that fills the card (no small centered thumbnail) */}
-              <div className="w-full aspect-square rounded-xl overflow-hidden relative group-hover:scale-105 transition-transform duration-200">
+              {/* Full-width square image that matches playlist hover effects */}
+              <div className="w-full aspect-square rounded-xl overflow-hidden relative transition-transform duration-200 group-hover:scale-105 ring-0 group-hover:ring-2 group-hover:ring-teal-500 group-hover:ring-offset-2 group-hover:ring-offset-gray-900">
                 <Image
                   src={genre.genreCoverUrl || '/default-genre.png'}
                   alt={genre.genre}

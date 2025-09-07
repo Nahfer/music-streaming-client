@@ -7,6 +7,7 @@ import Input from './ui/Input';
 import { searchAll } from '@/services/api';
 import * as Popover from '@radix-ui/react-popover';
 import { Search as SearchIcon, ChevronsRight } from 'lucide-react';
+import Loading from './ui/Loading';
 
 interface SearchResult {
   id: string;
@@ -157,9 +158,8 @@ const SearchBar: React.FC = () => {
         <Popover.Portal>
           <Popover.Content align="center" sideOffset={8} className="mt-2 w-full bg-gray-800 border border-gray-700 shadow-xl z-50 max-h-80 overflow-y-auto" style={{ borderRadius: cornerRadius, overflow: 'hidden' }}>
             {isLoading ? (
-              <div className="p-4 text-center text-gray-400">
-                <div className="animate-spin w-6 h-6 border-2 border-teal-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                Searching...
+              <div className="p-4">
+                <Loading message="Searching..." />
               </div>
             ) : results.length > 0 ? (
               <div className="py-2">

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { fetchPlaylistById, deletePlaylist } from '@/services/api';
 import { useParams, useRouter } from 'next/navigation';
 import Player from '@/components/Player';
+import Loading from '@/components/ui/Loading';
 
 interface Track {
   tid: string; // Ensure tid is included for tracks within a playlist
@@ -77,7 +78,7 @@ const PlaylistDetailPage = () => {
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
-  if (loading) return <div className="text-white">Loading playlist...</div>;
+  if (loading) return <Loading message="Loading playlist..." />;
   if (error) return <div className="text-red-500">Error: {error}</div>;
   if (!playlist) return <div className="text-white">Playlist not found.</div>;
 

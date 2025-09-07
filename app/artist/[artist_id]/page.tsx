@@ -5,6 +5,7 @@ import { fetchArtistById } from '@/services/api';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import Loading from '@/components/ui/Loading';
 
 interface Album {
   aaid: string; // Now actually returned by the backend
@@ -50,7 +51,7 @@ const ArtistPage = () => {
     }
   }, [artist_id]);
 
-  if (loading) return <div className="text-white">Loading artist profile...</div>;
+  if (loading) return <Loading message="Loading artist profile..." />;
   if (error) return <div className="text-red-500">Error: {error}</div>;
   if (!artistProfile) return <div className="text-white">Artist not found.</div>;
 

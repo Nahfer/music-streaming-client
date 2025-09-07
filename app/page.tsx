@@ -141,12 +141,12 @@ export default function Home() {
         {features.map((feature, index) => (
           <Card key={index} hover className="group cursor-pointer overflow-hidden">
             <Link href={feature.href} className="block" onClick={(e) => handleCardClick(feature.href, e)}>
-              <div className="relative w-full h-48 sm:h-56 md:h-48 lg:h-56 xl:h-64 overflow-hidden">
+              <div className="relative w-full h-48 sm:h-56 md:h-48 lg:h-56 xl:h-64 overflow-hidden transition-transform duration-200 group-hover:scale-105 ring-0 group-hover:ring-2 group-hover:ring-teal-500 group-hover:ring-offset-2 group-hover:ring-offset-gray-900">
                 <Image
                   src={feature.image}
                   alt={feature.title}
                   fill
-                  className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                  className="object-cover object-center"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
 
@@ -155,18 +155,18 @@ export default function Home() {
 
                 {/* Text overlays on image */}
                 <div className="absolute bottom-0 left-0 w-full p-4">
-                  <h3 className="text-lg sm:text-xl font-bold text-white mb-1 group-hover:text-teal-400 transition-colors duration-200 truncate">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm text-gray-200 opacity-90 line-clamp-2">
-                    {feature.description}
-                  </p>
-                </div>
+                 <h3 className="text-lg sm:text-xl font-bold text-white mb-1 group-hover:text-teal-400 transition-colors duration-200 truncate">
+                   {feature.title}
+                 </h3>
+                 <p className="text-sm text-gray-200 opacity-90 line-clamp-2">
+                   {feature.description}
+                 </p>
+               </div>
               </div>
-            </Link>
-          </Card>
-        ))}
-      </div>
+             </Link>
+           </Card>
+         ))}
+       </div>
 
       {/* Removed the Call to Action section per request */}
     </div>

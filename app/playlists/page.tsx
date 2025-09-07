@@ -6,6 +6,7 @@ import CreatePlaylist from '@/components/CreatePlaylist';
 import Link from 'next/link';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import Loading from '@/components/ui/Loading';
 
 interface TrackInPlaylist {
   tid: string;
@@ -55,16 +56,7 @@ const PlaylistsPage = () => {
     getUserPlaylists();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading playlists...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <Loading message="Loading playlists..." />;
 
   if (error) {
     return (
@@ -101,7 +93,8 @@ const PlaylistsPage = () => {
       {playlists.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-gray-400 mb-4">
-            <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {/* use lucide icon for consistency */}
+            <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>
           </div>

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { fetchTracksByGenre } from '@/services/api';
 import { useParams } from 'next/navigation';
 import Player from '@/components/Player';
+import Loading from '@/components/ui/Loading';
 
 // small helper to format seconds -> M:SS
 const formatTime = (time: number) => {
@@ -59,7 +60,7 @@ const GenrePage = () => {
     setCurrentTrack(track);
   };
 
-  if (loading) return <div className="text-white">Loading tracks...</div>;
+  if (loading) return <Loading message="Loading tracks..." />;
   if (error) return <div className="text-red-500">Error: {error}</div>;
   if (tracks.length === 0) return <div className="text-white">No tracks found for this genre.</div>;
 

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { fetchUserPlaylists, createPlaylist } from '@/services/api';
+import Loading from './ui/Loading';
 
 interface Track {
   tid: string;
@@ -86,7 +87,7 @@ export default function CreatePlaylist({ onCreated }: { onCreated?: () => void }
     }
   };
 
-  if (loading) return <div className="text-white">Loading your tracks...</div>;
+  if (loading) return <Loading message="Loading your tracks..." />;
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (

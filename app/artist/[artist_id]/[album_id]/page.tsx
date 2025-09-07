@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
 import { fetchAlbumTracks } from '@/services/api';
 import { useParams } from 'next/navigation';
 import Player from '@/components/Player';
+import Loading from '@/components/ui/Loading';
+import Image from 'next/image';
 
 // small helper to format seconds -> M:SS
 const formatTime = (time: number) => {
@@ -58,7 +59,7 @@ const AlbumPage = () => {
     setCurrentTrack(track);
   };
 
-  if (loading) return <div className="text-white">Loading album tracks...</div>;
+  if (loading) return <Loading message="Loading album tracks..." />;
   if (error) return <div className="text-red-500">Error: {error}</div>;
   if (tracks.length === 0) return <div className="text-white">No tracks found for this album.</div>;
 

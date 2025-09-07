@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { fetchLyrics } from '../services/api';
 import { SkipBack, Play, Pause, SkipForward, Repeat, Music, VolumeX, Volume, Volume2 } from 'lucide-react';
+import Loading from './ui/Loading';
 
 interface TrackInfo {
   id?: string;
@@ -488,7 +489,7 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, onNext, onPrev, onToggleL
             <button onClick={() => setShowLyricsPanel(false)} aria-label="Close lyrics" className="text-gray-300 hover:text-white">✕</button>
           </div>
           <div className="mt-2 text-sm leading-relaxed whitespace-pre-wrap">
-            {loadingLyrics ? 'Loading…' : (lyricsError ? lyricsError : (lyrics || 'No lyrics available'))}
+            {loadingLyrics ? <div className="p-2"><Loading message="Loading…" /></div> : (lyricsError ? lyricsError : (lyrics || 'No lyrics available'))}
           </div>
         </div>
       )}
