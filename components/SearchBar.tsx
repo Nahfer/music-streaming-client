@@ -186,7 +186,6 @@ const SearchBar: React.FC = () => {
                             <Image src={result.thumbnail} alt={result.title} fill className="object-cover" sizes="40px" />
                           ) : (
                             // external images: use native img to avoid image optimization/domain issues; lazy-load for perf
-                            // eslint-disable-next-line @next/next/no-img-element
                             <img src={result.thumbnail} alt={result.title} className="object-cover w-10 h-10" loading="lazy" />
                           )
                         ) : (

@@ -34,8 +34,6 @@ const Avatar: React.FC<AvatarProps> = ({
     <RadixAvatar.Root className={`inline-block align-middle ${className}`}>
       {src ? (
         <div className={`relative rounded-full overflow-hidden ${sizeClasses[size]}`}>
-          {/* Use a standard img tag here to avoid Next/Image unused import warnings in places where public assets are used. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={src} alt={alt} className="object-cover w-full h-full" />
         </div>
       ) : (

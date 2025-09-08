@@ -111,9 +111,7 @@ export default function CreatePlaylist({ onCreated }: { onCreated?: () => void }
                 const src = t.album?.albumCover ?? '/default-album.png';
                 const isExternal = typeof src === 'string' && /^https?:\/\//i.test(src);
                 if (isExternal) {
-                  // Render plain <img> for external hosts to avoid next/image hostname config issues
                   return (
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img src={src} alt={t.title} className="object-cover rounded-md w-10 h-10" />
                   );
                 }

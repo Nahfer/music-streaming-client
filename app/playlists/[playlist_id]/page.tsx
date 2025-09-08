@@ -106,7 +106,6 @@ const PlaylistDetailPage = () => {
                   const src = track.album?.albumCover ?? '/default-album.png';
                   const isExternal = typeof src === 'string' && /^https?:\/\//i.test(src);
                   if (isExternal) {
-                    // eslint-disable-next-line @next/next/no-img-element
                     return <img src={src} alt={track.title} className="object-cover rounded-md w-16 h-16" />;
                   }
                   return <Image src={src} alt={track.title} fill className="object-cover rounded-md" sizes="64px" />;

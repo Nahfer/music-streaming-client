@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Prefer an environment-controlled base URL; normalize to ensure a single trailing '/api'.
 const API_BASE_URL = (() => {
   const raw = (process.env.NEXT_PUBLIC_API_BASE_URL as string) || 'https://music-streaming-api-next.vercel.app';
